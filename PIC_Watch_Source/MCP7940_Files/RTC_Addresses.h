@@ -1,0 +1,27 @@
+//this file is for keeping all the MCP7940 addresses.
+#define RTC_Add 0b11011110
+#define RTCSec 0x00
+#define RTCMin 0x01
+#define RTCHour 0x02
+#define RTCWKDay 0x03
+#define RTCDate 0x04
+#define RTCMTH 0x05
+#define RTCYear 0x06
+#define CONTROL 0x07
+#define OSCTRIM 0x08
+#define ALM0Sec 0x0A
+#define ALM0Min 0x0B
+#define ALM0Hour 0x0C
+#define ALM0WKDay 0x0D
+#define ALM0Date 0x0E
+#define ALM0MTH 0x0F
+#define ALM1Sec 0x11
+#define ALM1Min 0x12
+#define ALM1Hour 0x13
+#define ALM1WKDay 0x14
+#define ALM1Date 0x15
+#define ALM1MTH 0x16
+#define POWER_FAIL_Start 0x18
+#define POWER_FAIL_End 0x1B
+#define SRAM_Start 0x20
+#define SRAM_End 0x5F
