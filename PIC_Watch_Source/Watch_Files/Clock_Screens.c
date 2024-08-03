@@ -97,7 +97,7 @@ void DisplayTime(void){
     sendcharacter(DigitToASCII[Year[0]]);
     sendcharacter(DigitToASCII[Year[1]]);
     //print temperature.
-    //printtemp();
+    printtemp();
     Display();
 }
 
