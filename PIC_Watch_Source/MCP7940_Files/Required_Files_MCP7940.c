@@ -92,6 +92,7 @@ void ReadDate(unsigned char Date[4]){
     I2C_Stop();
     Date[2]=(BINdate&0xF0)>>4;
     Date[3]=BINdate&0x0F;
-    Date[0]=(Month&0xF0)>>4;
+    //month tens place is at most 1.
+    Date[0]=(Month&0x10)>>4;
     Date[1]=Month&0x0F;
 }
