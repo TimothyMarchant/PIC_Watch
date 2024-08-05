@@ -1,0 +1,14 @@
+I have very limited abilities to actually cause intentional bus hangs, but I was able to cause a few lockups intentionally. 
+in the case of SCL being stuck high and SDA being stuck low, the implemented recovery method works with a reset of the microcontroller. 
+This hangup was caused by me repeatly resetting the device in mid communication until the line went low.  
+the following c code was used to test the recovery method.
+if (PORTCbits.RC1==0){
+        bitbangrecovery();
+        RESET();
+    }
+    else if (PORTCbits.RC1==1&&PORTCbits.RC0==0){
+        bitbangrecovery();
+        RESET();
+    }
+This method sends 9 pulses according to the I2C specifications (3.1.16).
+This is meant to avoid turning everything off.  The specifications do state if the SCL line is stuck low then we must cycle the power for the I2C parts.
