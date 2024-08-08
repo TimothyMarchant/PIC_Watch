@@ -13,3 +13,6 @@ unsigned char I2C_Read(void);
 void ACK(void);
 void NACK(void);
 #endif
+#ifndef I2C_Recovery_h
+void ForceReset(void);
+#endif

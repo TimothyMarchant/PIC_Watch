@@ -21,10 +21,10 @@
 void SendNumber(unsigned int);
 void SendByte(unsigned char);
 void HandleButton(unsigned char);
-//void DisplaySetting(void);
-
+void EnableInterrupts(void);
+void IncrementTimer1cnt(void);
+unsigned char GetTimer1cnt(void);
 unsigned int timer0cnt = 0;
-unsigned int timer1cnt = 0;
 unsigned char data = 0;
 _Bool DeepSleep = 0;
 _Bool IsPressed = 0;
@@ -41,21 +41,20 @@ void __interrupt() ISR(void) {
         IOCCF = 0;
         IOCIF = 0;
     }
-    if (IOCAFbits.IOCAF3) {
-
-    }
     if (TMR0IF) {
 
     }
-    //go to sleep upon waiting 10 seconds.
+    //I2C recovery
     if (TMR1IF) {
-        timer1cnt++;
-        if (timer1cnt == 1000) {
-            timer1cnt = 0;
-            GotoSleep();
-            TMR1ON=0;
-        }
+        TMR1ON=0;
+        IncrementTimer1cnt();
         TMR1IF=0;
+        if (GetTimer1cnt()==100){
+            
+            ForceReset();
+        }
+        TMR1=0;
+        TMR1ON=1;
     }
 }
 void GotoSleep(void){
@@ -63,34 +62,27 @@ void GotoSleep(void){
     //do some other things.
 }
 void main(void) {
-    TRISA = 0x01;
-    ANSELAbits.ANSA0 = 1;
+    TRISA = 0x00;
     LATA = 0x00;
+    TRISA0=1;
+    ANSELAbits.ANSA0 = 1;
     LATC = 0x00;
     //RC2-RC5 are all inputs.
     TRISC = 0xFF;
     ANSELC = 0x00;
     WPUC = 0x00;
-    IOCCP = 0x3C;
-    
     Temp_Init(&LATA, 5);
+    EnableInterrupts();
     I2C_Init();
     __delay_ms(50);
     init_OLED();
     MCP7940_Init();
-    GIE = 1;
-    PEIE = 1;
-    IOCIE = 1;
-    
-    //DisplaySetting();
-    //data=0x02;
     while (1) {
         //don't turn off the screen immediately wait some time then turn it off.
         HandleButton(data);
         if (DeepSleep) {
             DisplayTurnOff();
         }
-        
         SLEEP();
         //turn the screen back on.
         if (DeepSleep) {

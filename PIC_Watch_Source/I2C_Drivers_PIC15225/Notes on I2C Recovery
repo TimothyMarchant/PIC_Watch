@@ -1,0 +1,20 @@
+I have very limited abilities to actually cause intentional bus hangs, but I was able to cause a few lockups intentionally. 
+in the case of SCL being stuck high and SDA being stuck low, the implemented recovery method works with a reset of the microcontroller. 
+This hangup was caused by me repeatly resetting the device in mid communication until the line went low.  
+the following c code was used to test the recovery method.
+//further testing has shown this is the only necessary part.
+if (PORTCbits.RC1==0){
+        bitbangrecovery();
+        RESET();
+    }
+//I found this part to be redudant and unnecessary.
+    else if (PORTCbits.RC1==1&&PORTCbits.RC0==0){
+        bitbangrecovery();
+        RESET();
+    }
+This method sends 9 pulses according to the I2C specifications (3.1.16).
+This is meant to avoid turning everything off.  The specifications do state if the SCL line is stuck low then we must cycle the power for the I2C parts.  
+There was further testing, with the timeout, which the timer does work and will call the ISR (and when appropriate call the recovery method).  
+But for some reason I2C_Wait() (a blocking loop) did not block the microcontroller from doing anything.  I tried shorting the SDA and SCL lines (based on what I read someone said to do to test such things). to cause a stuck bus (which didn't work), 
+repeatly paused a debugger to no avail.  The only way I was able to get a stuck bus was by resetting in MPLAB IPE and calling the recovery method in I2C_Stop() under the condition that the SDA line is stuck LOW.  
+At this point I'm considering my solution to be good enough, I learned more about the actual protocol, but I can only use so much of my time to work on this, so I consider this to be my final attempt at resolving a stuck bus.
