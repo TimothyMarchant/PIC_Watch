@@ -13,15 +13,15 @@ void Timer0(void){
 }
 //the exact time of timer1 is not time critical.  It will simply be used as a timeout for I2C.
 //timer increments only on multiples of FOSC (Hfintz based on the prescaler.  The clock rate is 32MHz
-//Then the time for a single increment to the timer is HFintz/prescaler
-//for timer1=0 to 0xFFFF then the delay is equal to (HFin/prescaler)*0xFFFF.
+//Then the time for a single increment to the timer is FOSC/prescaler*4
+//for timer1=0 to 0xFFFF then the delay is equal to (FOSC/prescaler*4)*0xFFFF.
 //we need only to make the delay long enough to really make sure the bus is hanging.
 void Timer1(void){
     TMR1IE=1;
     //1:4 prescaler. Asychronous.
     T1CON=0x26;
     T1GCONbits.GE=0;
-    //HFINTOSC clock source.
+    //FOSC/4. for now.
     T1CLKbits.CS=0x01;
     TMR1=0;
 }
