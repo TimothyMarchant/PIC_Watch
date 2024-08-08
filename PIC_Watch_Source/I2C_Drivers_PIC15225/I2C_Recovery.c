@@ -2,6 +2,8 @@
 #ifndef _XTAL_FREQ
 #define _XTAL_FREQ 32000000
 #endif
+void TurnOffInterrupts(void);
+void TurnOnInterrupts(void);
 #define SCL_TRI TRISC0
 #define SDA_TRI TRISC1
 #define SDA_LAT LATC1
