@@ -9,7 +9,7 @@
 void updateCursor(unsigned char);
 void GetLeapYearStatus(void);
 unsigned char Time[4]={0};
-unsigned char Date[4]={0};
+unsigned char Date[4]={0,1,0,1};
 unsigned char Year[2]={0,0};
 
 void UpdateTimeArray(void){
@@ -34,14 +34,6 @@ void printtemp(void){
         SendNumber((unsigned) temperature);
     }
     sendcharacter('C');
-    LATA5=1;
-    //for debugging purposes.  For some reason the temperature gets incorrect readings (for example <10 degrees celsius in a bedroom)
-    sendcharacter('\n');
-    SendNumber(Convert_Analog());
-    sendcharacter('A');
-    sendcharacter('D');
-    sendcharacter('C');
-    LATA5=0;
 }
 //these update methods exist solely to modify only one line of the display.
 #define TemperatureLine 4
@@ -61,7 +53,13 @@ void UpdateDisplayTime(void){
     WriteLine(TimeLine);
 }
 #define DateLine 3
+#define IsMidnight Time[0]==0&&Time[1]==0&&Time[2]==0&&Time[3]==0
+#define IsNewYear Date[0]==0&&Date[1]==1&&Date[2]==0&&Date[3]==1
 void UpdateDisplayDate(void){
+    //only update at midnight to avoid unnecessary reads.  I2C is much slower than checking 4 conditions.
+    if (!(IsMidnight)){
+        return;
+    }
     UpdateDateArray();
     changecursorposition(DateLine,5);
     sendcharacter(DigitToASCII[Date[0]]);
@@ -71,27 +69,42 @@ void UpdateDisplayDate(void){
     sendcharacter(DigitToASCII[Date[3]]);
     WriteLine(DateLine);
 }
+#define YearLine 4
+void UpdateDisplayYear(void){
+    //only update the year if and only if the date is january 1st at midnight.
+    if (!(IsNewYear)||!(IsMidnight)){
+        return;
+    }
+    UpdateYearArray();
+    changecursorposition(YearLine,5);
+    sendcharacter('2');
+    sendcharacter('0');
+    sendcharacter(DigitToASCII[Year[0]]);
+    sendcharacter(DigitToASCII[Year[1]]);
+    WriteLine(YearLine);
+}
 //state 1.  This is the main thing to display.
 void DisplayTime(void){
+    
     UpdateTimeArray();
     UpdateDateArray();
     UpdateYearArray();
     ClearTextBuffer();
     //print the time in the center of the screen. 
-    changecursorposition(2,5);
+    changecursorposition(TimeLine,5);
     sendcharacter(DigitToASCII[Time[0]]);
     sendcharacter(DigitToASCII[Time[1]]);
     sendcharacter(':');
     sendcharacter(DigitToASCII[Time[2]]);
     sendcharacter(DigitToASCII[Time[3]]);
     //print date
-    changecursorposition(3,5);
+    changecursorposition(DateLine,5);
     sendcharacter(DigitToASCII[Date[0]]);
     sendcharacter(DigitToASCII[Date[1]]);
     sendcharacter('/');
     sendcharacter(DigitToASCII[Date[2]]);
     sendcharacter(DigitToASCII[Date[3]]);
-    changecursorposition(4,5);
+    changecursorposition(YearLine,5);
     sendcharacter('2');
     sendcharacter('0');
     sendcharacter(DigitToASCII[Year[0]]);
@@ -99,6 +112,8 @@ void DisplayTime(void){
     //print temperature.
     printtemp();
     Display();
+    updatealarm0();
+    TurnOnInterrupt();
 }
 
 //State 2.  Settings '*' indicates the current position.  Starts at line 0.
@@ -109,11 +124,13 @@ const signed char SettingsText[52]={
 ' ','C','h','a','n','g','e',' ','D','a','t','e','\n',
 ' ','C','h','a','n','g','e',' ','Y','e','a','r','\n',
 ' ','E','x','i','t'};
-/*
+/* this is meant for the future if I intend to ever add a timer mode or any other settings.
 ' ','O','t','h','e','r',' ','S','e','t','t','i','n','g','s','\n',
 ' ','T','i','m','e','r','\n',
 ' ','E','x','i','t'};*/
 void DisplaySetting(void){
+    //turn off RTC interrupt, it's no longer needed.
+    TurnOffInterrupt();
     ClearTextBuffer();
     changecursorposition(0,5);
     for (unsigned char i=0;i<52;i++){
@@ -267,7 +284,7 @@ void DateMenuDisplay(void){
 const signed char YearDisplayText[30]={'Y','e','a','r','\n',
 '\n',
 '\n',
-' ',' ',' ',' ',' ','2','0',':','0','0','\n',
+' ',' ',' ',' ',' ','2','0',' ','0','0','\n',
 ' ',' ',' ',' ',' ','C','o','n','f','i','r','m'};
 void YearMenuDisplay(void){
     ClearTextBuffer();
