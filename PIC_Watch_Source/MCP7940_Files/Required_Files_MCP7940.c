@@ -4,8 +4,9 @@
 #define DefaultMonth 7
 //year is two digits.  Certainly it is not before 2000 and not after 2099 (If this code block even still exists at that point!)
 #define DefaultYear 2024
+//set seconds to zero.
 #define TurnOn 0x80
-void Init_Alarm(_Bool);
+void Init_Alarm0(void);
 //this method exists so I don't have to write the same three method calls.
 void StartTransmission(unsigned char address){
     I2C_Start();
@@ -25,9 +26,9 @@ void TurnOnClock(void){
     I2C_Stop();
 }
 void MCP7940_Init(void){
-    //Init_Alarm(1);
+    Init_Alarm0();
     StartTransmission(RTCSec);
-    //start the timer
+    //start the Clock
     I2C_Write(TurnOn);
     I2C_Stop();
 

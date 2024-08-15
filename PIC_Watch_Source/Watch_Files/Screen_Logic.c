@@ -19,6 +19,7 @@
 #define YearMenu 5
 #define OtherSettings 6
 #define Timer 7
+#define RTC_Alarm_INT 0xFF
 #define Button_One 0x01
 #define Button_Two 0x02
 #define Button_Three 0x04
@@ -30,6 +31,7 @@ void DisplayTime(void);
 void DisplaySetting(void);
 void UpdateDisplayDate(void);
 void UpdateDisplayTime(void);
+void UpdateDisplayYear(void);
 void UpdateTemperature(void);
 void updateSettingPos(_Bool, unsigned char);
 void ChangeTimeDisplay(void);
@@ -97,8 +99,13 @@ void isLeapYear(void) {
 }
 
 void HandleButton(unsigned char data) {
-    //data=2;
-    //Watch_State=1;
+    if (data==RTC_Alarm_INT){
+        UpdateDisplayTime();
+        UpdateDisplayDate();
+        UpdateDisplayYear();
+        UpdateTemperature();
+        return;
+    }
     unsigned char previous_state = Watch_State;
     switch (Watch_State) {
         case Watch_Sleep:
@@ -137,6 +144,7 @@ void HandleButton(unsigned char data) {
             Digits[1] = 1;
             Digits[3] = 1;
         }
+        
         DisplayState();
 
     }

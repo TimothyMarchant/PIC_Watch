@@ -13,3 +13,10 @@ void SetYear(unsigned char year[2]);
 void ReadYear(unsigned char year[2]);
 _Bool getLeapyear(void);
 #endif
+#ifndef Alarm_Methods
+void Init_Alarm0(void);
+void updatealarm0(void);
+void ClearAlarm0Interrupt(void);
+void TurnOffInterrupt(void);
+void TurnOnInterrupt(void);
+#endif
