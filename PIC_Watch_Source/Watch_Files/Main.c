@@ -18,6 +18,7 @@
 #define Button4 PORTCbits.RC5
 #define INTDATA 0xFF
 #define PORTCButtons 0b00111100
+#define OLED_POWER LATA4
 void SendNumber(unsigned int);
 void SendByte(unsigned char);
 void HandleButton(unsigned char);
@@ -85,6 +86,7 @@ void main(void) {
     ANSELC = 0x00;
     WPUC = 0x00;
     WPUA=0x00;
+    OLED_POWER=1;
     Temp_Init(&LATA, 5);
     EnableInterrupts();
     I2C_Init();
@@ -98,12 +100,19 @@ void main(void) {
             DisplayTurnOff();
             //turn off alarm0 no interrupts are made in deep sleep.
             TurnOffInterrupt();
+            //wait a little before just turning off the screen.
+            __delay_ms(1);
+            OLED_POWER=0;
         }
         SLEEP();
         //We need this here instead of the ISR to avoid stack overflow.  The stack can only go 15 deep according to the datasheet (the compiler made a warning about it).
         
         //turn the screen back on.
         if (DeepSleep) {
+            OLED_POWER=1;
+            //wait some time before sending any commands.  the datasheet of the SSD1306 has the timing diagrams lasting a few microseconds, but I rather just wait longer
+            //to avoid any problems.
+            __delay_ms(1);
             DisplayTurnOn();
             DeepSleep = 0;
         }
