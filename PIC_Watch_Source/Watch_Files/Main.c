@@ -57,6 +57,7 @@ void __interrupt() ISR(void) {
         data = (PORTC & PORTCButtons)>>2;
         IOCCF = 0;
         IOCIF = 0;
+        NeedToUpdateTime=0;
     }
     //alarm interrupt
     if (IOCAF>0){
@@ -65,7 +66,6 @@ void __interrupt() ISR(void) {
         //The compiler gave a warning when we call such methods saying possible stack overflow.
         IOCIF=0;
         IOCAF=0;
-        data=0xFF;
     }
 }
 //this is for other files so that it can be changed elsewhere.
@@ -103,6 +103,7 @@ void main(void) {
             //wait a little before just turning off the screen.
             __delay_ms(1);
             OLED_POWER=0;
+            ClearAlarm0Interrupt();
         }
         SLEEP();
         //We need this here instead of the ISR to avoid stack overflow.  The stack can only go 15 deep according to the datasheet (the compiler made a warning about it).
