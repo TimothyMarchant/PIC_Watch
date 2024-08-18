@@ -6,12 +6,20 @@
 #include "MCP9700_Drivers.h"
 #include "MCP7940_Drivers.h"
 #include "ADC_Drivers.h"
+#define ALARMINTPIN PORTAbits.RA2
 void updateCursor(unsigned char);
 void GetLeapYearStatus(void);
+void SendNumber(unsigned int);
 unsigned char Time[4]={0};
 unsigned char Date[4]={0,1,0,1};
 unsigned char Year[2]={0,0};
-
+//needed to make date corrections for nonleap years.
+_Bool IsFeb29(void){
+    if (Date[0]==0&&Date[1]==2&&Date[2]==2&&Date[3]==9){
+        return 1;
+    }
+    return 0;
+}
 void UpdateTimeArray(void){
     ReadTime(Time);
 }
@@ -21,9 +29,9 @@ void UpdateDateArray(void){
 void UpdateYearArray(void){
     ReadYear(Year);
 }
-void SendNumber(unsigned int);
+
 void printtemp(void){
-    changecursorposition(5,7);
+    changecursorposition(5,6);
     signed int temperature=GetTemp();
     if (temperature>=0){
         SendNumber((unsigned) temperature);
@@ -76,7 +84,7 @@ void UpdateDisplayYear(void){
         return;
     }
     UpdateYearArray();
-    changecursorposition(YearLine,5);
+    changecursorposition(YearLine,6);
     sendcharacter('2');
     sendcharacter('0');
     sendcharacter(DigitToASCII[Year[0]]);
@@ -104,7 +112,7 @@ void DisplayTime(void){
     sendcharacter('/');
     sendcharacter(DigitToASCII[Date[2]]);
     sendcharacter(DigitToASCII[Date[3]]);
-    changecursorposition(YearLine,5);
+    changecursorposition(YearLine,6);
     sendcharacter('2');
     sendcharacter('0');
     sendcharacter(DigitToASCII[Year[0]]);
@@ -124,13 +132,15 @@ const signed char SettingsText[52]={
 ' ','C','h','a','n','g','e',' ','D','a','t','e','\n',
 ' ','C','h','a','n','g','e',' ','Y','e','a','r','\n',
 ' ','E','x','i','t'};
-/* this is meant for the future if I intend to ever add a timer mode or any other settings.
+/*
 ' ','O','t','h','e','r',' ','S','e','t','t','i','n','g','s','\n',
 ' ','T','i','m','e','r','\n',
 ' ','E','x','i','t'};*/
 void DisplaySetting(void){
     //turn off RTC interrupt, it's no longer needed.
     TurnOffInterrupt();
+    //clear interrupt flag in case it was triggered.
+    ClearAlarm0Interrupt();
     ClearTextBuffer();
     changecursorposition(0,5);
     for (unsigned char i=0;i<52;i++){
@@ -284,7 +294,7 @@ void DateMenuDisplay(void){
 const signed char YearDisplayText[30]={'Y','e','a','r','\n',
 '\n',
 '\n',
-' ',' ',' ',' ',' ','2','0',' ','0','0','\n',
+' ',' ',' ',' ',' ',' ','2','0','0','0','\n',
 ' ',' ',' ',' ',' ','C','o','n','f','i','r','m'};
 void YearMenuDisplay(void){
     ClearTextBuffer();
@@ -294,11 +304,4 @@ void YearMenuDisplay(void){
     }
     Display();
     updateCursor(2);
-}
-//state 6.  Other settings
-void OtherSettingsDisplay(void){
-    
-}
-void TimerDisplay(void){
-    
 }
