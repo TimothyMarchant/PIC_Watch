@@ -9,7 +9,7 @@
  * 2 implies the clock is in the settings screen.
  * 3 implies the clock is in the change time menu
  * 4 implies the clock is in the date menu (save dates)
- * 5 other settings
+ * 5 implies the clock is in the year menu
  */
 #define Watch_Sleep 0
 #define Clock 1
@@ -17,8 +17,10 @@
 #define ChangeTime 3
 #define DateMenu 4
 #define YearMenu 5
+//these two are currently unused.
 #define OtherSettings 6
 #define Timer 7
+//
 #define RTC_Alarm_INT 0xFF
 #define Button_One 0x01
 #define Button_Two 0x02
@@ -36,12 +38,12 @@ void UpdateTemperature(void);
 void updateSettingPos(_Bool, unsigned char);
 void ChangeTimeDisplay(void);
 void DateMenuDisplay(void);
-void OtherSettingsDisplay(void);
+//void OtherSettingsDisplay(void);
 void SettingLogic(unsigned char);
 void SettingsConfirm(void);
 void TimeLogic(unsigned char);
 void DateLogic(unsigned char);
-void OtherLogic(unsigned char);
+//void OtherLogic(unsigned char);
 void WatchLogic(unsigned char);
 void updateCursor(unsigned char);
 void UpdateDigit(unsigned char, signed char);
@@ -50,17 +52,17 @@ void GotoSleep(void);
 void isLeapYear(void);
 void YearMenuDisplay(void);
 void YearLogic(unsigned char);
+_Bool IsFeb29(void);
 //variables
 unsigned char settingcursor = 1;
 unsigned char Watch_State = 0;
 _Bool LeapYear = 0;
-_Bool AMPM = 0;
 
 unsigned char Digits[4] = {0, 0, 0, 0};
 unsigned char TempYear[2] = {0, 0};
 //keep track of the previous state
 unsigned char Previous_State = 0;
-
+//displays the current state to the screen.
 void DisplayState(void) {
     switch (Watch_State) {
         case Watch_Sleep:
@@ -82,7 +84,7 @@ void DisplayState(void) {
             YearMenuDisplay();
             break;
         case OtherSettings:
-            OtherSettingsDisplay();
+            //OtherSettingsDisplay();
             break;
         case Timer:
             break;
@@ -97,7 +99,7 @@ void DisplayState(void) {
 void isLeapYear(void) {
     LeapYear = getLeapyear();
 }
-
+//Handle button inputs.
 void HandleButton(unsigned char data) {
     if (data==RTC_Alarm_INT){
         UpdateDisplayTime();
@@ -126,8 +128,9 @@ void HandleButton(unsigned char data) {
         case YearMenu:
             YearLogic(data);
             break;
+            //these two are not called as of right now.
         case OtherSettings:
-            OtherLogic(data);
+            //OtherLogic(data);
             break;
         case Timer:
             break;
@@ -150,7 +153,7 @@ void HandleButton(unsigned char data) {
     }
 }
 #define GotoSettings Button_One
-
+//This is state 1.  Do something based on the input.
 void WatchLogic(unsigned char data) {
     if (data == GotoSettings) {
         Watch_State = 2;
@@ -169,9 +172,9 @@ void WatchLogic(unsigned char data) {
 #define UpCursor 0
 #define DownCursor 1
 #define MinSetCursor 1
-//final cursor value is 6
+//final cursor value is 6.  But for now it's set to 4.
 #define MaxSetCursor 4
-
+//State 2, change cursor position and on confirmation switch states.
 void SettingLogic(unsigned char data) {
     switch (data) {
         case Exit:
@@ -226,21 +229,6 @@ _Bool CurrentlySelected = 0;
 #define Left Button_Two
 #define Right Button_Three
 
-void TimeConfirm(void) {
-    if (TimeCursor == 4) {
-        Watch_State = Settings;
-        SetTime(Digits);
-        for (unsigned char i = 0; i < 4; i++) {
-            //reset the array to be all zeros.
-            Digits[i] = 0;
-        }
-        CurrentlySelected = 0;
-        UpdateTimeArray();
-        TimeCursor = 0;
-        return;
-    }
-    CurrentlySelected = 1;
-}
 #define Increment 1
 #define Decrement 0
 #define Time ChangeTime
@@ -251,17 +239,7 @@ void TimeConfirm(void) {
 unsigned char GetTimeBound(unsigned char place) {
     switch (place) {
         case 0:
-            if (AMPM) {
-                return 1;
-            }//24 hour clock
-            else {
-                if (Digits[1] > 3) {
-                    Digits[1] = 0;
-                    UpdateDigit(1, DigitToASCII[Digits[1]]);
-                }
-                return 2;
-            }
-            break;
+            return 2;
         case 1:
             if (Digits[0] == 2) {
                 return 3;
@@ -342,18 +320,18 @@ unsigned char getupperbound(unsigned char type, unsigned char place) {
     return 0;
 }
 //exists to make the next method nicer looking.
-
 _Bool NeedToResetDate(unsigned char DigitIndex) {
     if ((DigitIndex == 1 || DigitIndex == 3) && Digits[DigitIndex] == 0 && Digits[2] == 0) {
         return 1;
     }
     return 0;
 }
-
+//update the currently selected digit.
 void ChangeDigit(_Bool Direction, unsigned char DigitIndex) {
     unsigned char upperbound = getupperbound(Watch_State, DigitIndex);
     if (Direction) {
         if (Digits[DigitIndex] >= upperbound) {
+            //these two are so that we don't have a zeroth date or month.
             if (Watch_State == DateMenu && DigitIndex == 3 && Digits[2] == 0) {
                 Digits[DigitIndex] = 1;
                 return;
@@ -371,18 +349,14 @@ void ChangeDigit(_Bool Direction, unsigned char DigitIndex) {
             return;
         }
         Digits[DigitIndex]--;
+        //meant to prevent getting zeroth dates.
         if (Watch_State == DateMenu && NeedToResetDate(DigitIndex)) {
             Digits[DigitIndex] = upperbound;
         }
     }
-    //update the last digit for a date if you go from the 10 to the 01 (this prevents the user from typing the date as xx/00 where xx is any month)
-    if (Watch_State==DateMenu&&Digits[2]==0&&Digits[3]==0&&DigitIndex==2){
-        Digits[3]=1;
-        UpdateDigit(3, DigitToASCII[Digits[3]]);
-    }
 }
-//since TimeLogic and DateLogic are very similiar they share this common method.
-
+//since TimeLogic and DateLogic are very similar they share this common method.
+//data is the input from the button selected.
 void DigitOption(unsigned char data, unsigned char Cursor) {
     switch (data) {
         case Up:
@@ -391,17 +365,39 @@ void DigitOption(unsigned char data, unsigned char Cursor) {
         case Down:
             ChangeDigit(Decrement, Cursor);
             break;
+            //exit
         case Confirm:
             CurrentlySelected = 0;
             break;
     }
 }
-//
-
+//confirmation method, do something based on where the cursor is located.
+void TimeConfirm(void) {
+    if (TimeCursor == 4) {
+        Watch_State = Settings;
+        SetTime(Digits);
+        for (unsigned char i = 0; i < 4; i++) {
+            //reset the array to be all zeros.
+            Digits[i] = 0;
+        }
+        CurrentlySelected = 0;
+        UpdateTimeArray();
+        TimeCursor = 0;
+        return;
+    }
+    CurrentlySelected = 1;
+}
+//State 3 meant for changing the time.
 void TimeLogic(unsigned char data) {
+    //Modify digit when true.
     if (CurrentlySelected) {
         DigitOption(data, TimeCursor);
         UpdateDigit(TimeCursor, DigitToASCII[Digits[TimeCursor]]);
+        //there isn't a 29 hour day.  Only check when updating the tens hour digit.
+        if (Digits[1] > 3&&Digits[0]==2&&TimeCursor==0) {
+                    Digits[1] = 0;
+                    UpdateDigit(1, DigitToASCII[Digits[0]]);
+                }
         return;
     }
     switch (data) {
@@ -427,7 +423,6 @@ void TimeLogic(unsigned char data) {
     }
 }
 unsigned char DateCursor = 0;
-//
 
 void DateConfirm(void) {
     if (DateCursor == 4) {
@@ -443,12 +438,33 @@ void DateConfirm(void) {
     }
     CurrentlySelected = 1;
 }
-//
+//State 4 meant for changing the date.  It's almost identical to TimeLogic().
 
 void DateLogic(unsigned char data) {
     if (CurrentlySelected) {
         DigitOption(data, DateCursor);
         UpdateDigit(DateCursor, DigitToASCII[Digits[DateCursor]]);
+        //these are for weird exception cases, so that we don't have odd dates like march 0th or June 39th.
+        //there isn't a 0th month
+        if (Digits[0]==0&&Digits[1]==0&&DateCursor==0){
+            UpdateDigit(1,DigitToASCII[1]);
+            Digits[1]=1;
+        }
+        //if exceeding 12
+        else if (Digits[0]==1&&Digits[1]>2&&DateCursor==0){
+            UpdateDigit(1,DigitToASCII[2]);
+            Digits[1]=2;
+        }
+        //to prevent June 39th and other incorrect dates.
+        else if (Digits[2]==3&&Digits[3]>1&&DateCursor==2){
+            UpdateDigit(3,DigitToASCII[0]);
+            Digits[3]=0;
+        }
+        //to prevent December 0th (or the 0th of a month).
+        else if (Digits[2]==0&&Digits[3]==0&&DateCursor==2){
+            UpdateDigit(3,DigitToASCII[1]);
+            Digits[3]=1;
+        }
         return;
     }
     switch (data) {
@@ -474,13 +490,17 @@ void DateLogic(unsigned char data) {
     }
 }
 unsigned char YearCursor = 2;
-
+const unsigned char Feb28[4]={0,2,2,8};
 void YearConfirm(void) {
     if (YearCursor == 4) {
         Watch_State = Settings;
         unsigned char tempyear[2];
         tempyear[0] = Digits[2];
         tempyear[1] = Digits[3];
+        //prevent a nonleap year having February 29th.  Only change the date when it's February 29th to the 28th.
+        if (IsFeb29()){
+            SetDate(Feb28);
+        }
         //this only accepts a two element array.
         SetYear(tempyear);
         for (unsigned char i = 0; i < 4; i++) {
@@ -493,9 +513,7 @@ void YearConfirm(void) {
     }
     CurrentlySelected = 1;
 }
-
-//Also set year in this menu.
-
+//State 5, basically a smaller version of DateLogic and TimeLogic.
 void YearLogic(unsigned char data) {
     if (CurrentlySelected) {
         DigitOption(data, YearCursor);
@@ -523,14 +541,4 @@ void YearLogic(unsigned char data) {
             YearConfirm();
             break;
     }
-}
-//everything below here is yet to be implemented.
-//Set am/pm display and other things.
-void OtherLogic(unsigned char data) {
-
-}
-//Set timer
-
-void TimerLogic(unsigned char data) {
-
 }
