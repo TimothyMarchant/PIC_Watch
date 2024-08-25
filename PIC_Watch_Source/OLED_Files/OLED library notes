@@ -1,0 +1,2 @@
+I developed all the source code for this library, but the original code came from another repo I had made.  The original library was for a different PIC, but I made changes to make it work for this project.  
+The original library I made can be found here https://github.com/TimothyMarchant/SSD1306_I2C_Drivers.  
