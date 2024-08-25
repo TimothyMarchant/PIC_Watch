@@ -1,0 +1,29 @@
+To preface, most sources for power come from a parts datasheet, so each part will be listed with its current consumption, and we will compute the battery life span here.
+PIC16F15225 SLEEP : <600 nA @ 3 volts
+PIC16f15225 Running @ 4 MHz : <1 mA.  @ 5 volts
+But we are running it at 32 MHz which is 8 times faster than 4 MHz, but I'd imagine current consumption is nonlinear, so for now we will say it consumes 8mA we may change to 1 MHz after this 
+(the PIC only has three internal oscilators; 32MHz, 1MHz, 32KHz),
+MCP7940N : 1.2 uA
+MCP9700 : 6 uA (but this is barely on, so we don't really consider it).
+SSD 1306 (ON) :  8.1 mA for 50% of the screen lit up at constrast set to 127 (taken from here https://bitbanksoftware.blogspot.com/2019/06/how-much-current-do-oled-displays-use.html).
+To compute the average current consumption we must compute all possible current consumptions.
+DEEP_SLEEP: only two things are on in this state, the PIC and the MCP7940N.  Therefore current<1.2+0.6=1.8 microamps.
+Light_SLEEP: In this state the screen is active, but the PIC is in sleep and the MCP7940N is running.  Therefore current<1.2+0.6+8100=8101.8 micro amps.
+Active:  The same as before, but the PIC is running: Then we have current<1000+8100+1.2=9101.2 micro amps.
+We do not consider other active states since they're negliable and we are partially overestimating other states, so it should work out.
+We can make certain assumptions about the activity of the watch.  Most of the time the watch will be in deep sleep.  Realistcally a user might check at most 5 minutes a day, sometimes less.  
+We also will assume the user is not making changes in the settings.  It's only on the first powerup.
+So we consider three cases, the user checks 5 minutes a day, 3 minutes a day, and 1.5 minutes a day or that is 0.35% of the day, 0.21%, or 0.10%.  Further more, the PIC is realistically in sleep most of that time say at least 50% of the time.
+Therefore, for case 1: AVG current consumption (5 mins) is less than (0.175%*Active+0.175%*Light_Sleep)+DEEP_SLEEP*99.65%
+For case 2 (3 minutes): we have (0.105%*Active+0.105%*Light_Sleep)+DEEP_SLEEP*99.79%
+For case 3 (1.5 minutes): we have (0.05%*Active+0.05%*LightSleep)+Deep_Sleep*99.90%
+case 1<31.90, case 2<19.8, case 3<10.4 where each is in micro amps.
+This is the average current consumption.
+Now we will assume that each case has some probability of being selected.  For this problem we will assume the user is equally likely for all three cases.
+Then the average current consumption in general is 1/3*(case 1 +case 2+ case 3)=20.7 micro amps.  However recall that we are over estimating current consumption, then we can say the average consumption is <20.7uA.
+A CR2032 usually has a capacity of 230 MAh.  So the life span would be 230000/20.7=11111.111 hours or at least 1 year (1.268 years).
+In short the expected battery life would be a little over a year.  Granted if the user barely checks the time, then this clearly would be much longer.
+For a more optimal expected life span suppose the user checks 1.5 mins a day >95% of the time, so the average consumption is approximately 10.4 uA.  Then 230000/10.4 = 22115.385 hours or 2.5 years.
+For the nonoptimal case, suppose it's 5 minutes a day >95% of the time.  Then approximately it's 230000/31.90=7210 hours or 10 months.
+To conclude we can say for the average user the life span is around 1.268 years, the best case is 2.5 years, and the worst case is 10 months.  
+Obviously we are assuming the user is not forgetting to turn the watch into sleep mode.  But this is a good approximation.
