@@ -1,0 +1,2 @@
+When soldering components onto the PCB the temperature sensor MUST be soldered after the PIC has been programmed.  
+I think this has to do with the sensor outputting a voltage when the device is powered on and I guess causes problems the programming pin.  Maybe a redesign will come around.
