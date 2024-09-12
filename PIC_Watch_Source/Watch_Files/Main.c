@@ -43,7 +43,7 @@ void __interrupt() ISR(void) {
         IncrementTimer1cnt();
         TMR1IF=0;
         //timeout has clearly gone on too long restart the device after sending 9 clock pulses.
-        if (GetTimer1cnt()==100){
+        if (GetTimer1cnt()==0xFF){
             ForceReset();
         }
         TMR1=0;
@@ -102,19 +102,23 @@ void main(void) {
             TurnOffInterrupt();
             //wait a little before just turning off the screen.
             __delay_ms(1);
-            OLED_POWER=0;
             ClearAlarm0Interrupt();
+            OLED_POWER=0;
+            TMR1IE=0;
+            data=0x00;
         }
         SLEEP();
         //We need this here instead of the ISR to avoid stack overflow.  The stack can only go 15 deep according to the datasheet (the compiler made a warning about it).
         
         //turn the screen back on.
-        if (DeepSleep) {
+        if (DeepSleep&&data!=0x00) {
             OLED_POWER=1;
             //wait some time before sending any commands.  the datasheet of the SSD1306 has the timing diagrams lasting a few microseconds, but I rather just wait longer
             //to avoid any problems.
-            __delay_ms(1);
-            DisplayTurnOn();
+            __delay_ms(25);
+            init_OLED();
+            //prevents the screen from having garbage shown.
+            DisplayTurnOff();
             DeepSleep = 0;
         }
         if (NeedToUpdateTime){
