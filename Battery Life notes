@@ -1,4 +1,9 @@
-To preface, most sources for power come from a parts datasheet, so each part will be listed with its current consumption, and we will compute the battery life span here.
+NOTE: Some testing (that is me actually using a CR2032) has not matched expectations.  Although the batteries I used where repeatedly used while just testing general functionality and a few times were shorted.  
+So I think this caused some problems with the lifespan.  I am currently testing a brand new battery to see how long it lasts.  
+Also I learned that CR2032 are not suppose to sustain high current (in the panasonic datasheet for its CR2032 it has a low continuous drain 0.2mA).  I did not know this at the time of writing this originally.
+
+
+To preface, most sources for power come from a parts datasheet (I had problems trying to use a multimeter for some parts), so each part will be listed with its current consumption, and we will compute the battery life span here.
 PIC16F15225 SLEEP : <600 nA @ 3 volts
 PIC16F15225 Active: approximately 4mA @ 3 volts (According to the current graphs in the datasheets, at room temperature at 3 volts it seems the PIC uses 4mA at 32 MHz.)
 (the PIC only has three internal oscilators; 32MHz, 1MHz, 32KHz),
