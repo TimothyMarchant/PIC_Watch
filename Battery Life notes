@@ -1,7 +1,8 @@
 NOTE: Some testing (that is me actually using a CR2032) has not matched expectations.  Although the batteries I used where repeatedly used while just testing general functionality and a few times were shorted.  
-So I think this caused some problems with the lifespan.  I am currently testing a brand new battery to see how long it lasts.  
+So I think this caused some problems with the lifespan.   The last tested battery, the life span was around 7 days with the watch mostly in sleep mode. I'm trying one more time with a different brand (I was using some no-name before).
+I don't think this will matter, but this last attempt is with an energizer CR2032.
 Also I learned that CR2032 are not suppose to sustain high current (in the panasonic datasheet for its CR2032 it has a low continuous drain 0.2mA).  I did not know this at the time of writing this originally.
-
+ 
 
 To preface, most sources for power come from a parts datasheet (I had problems trying to use a multimeter for some parts), so each part will be listed with its current consumption, and we will compute the battery life span here.
 PIC16F15225 SLEEP : <600 nA @ 3 volts
