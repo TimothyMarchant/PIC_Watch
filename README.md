@@ -1,5 +1,5 @@
 # PIC_Watch
-A digital watch that tells the time and temperature.  It uses the PIC15225 microcontroller.  The screen is a 0.96 inch OLED (SSD1306).  
+A digital watch that tells the time and temperature.  It uses the PIC16F15225 microcontroller.  The screen is a 0.96 inch OLED (SSD1306).  
 The purpose of this project was to make an actual embedded application because I was in need of a watch.  
 
 Here are some pictures from start to finish.  
